@@ -1,0 +1,680 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>悬赏通告 - 查找被执行人</title>
+    <style>
+        :root {
+            --primary-red: #d93025;
+            --legal-blue: #1a3b5c;
+            --bg-gray: #f2f3f5;
+            --text-dark: #222;
+            --text-gray: #666;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-gray);
+            color: var(--text-dark);
+            padding-bottom: 80px;
+        }
+
+        /* Header */
+        header {
+            background: var(--legal-blue);
+            color: white;
+            text-align: center;
+            padding: 20px 15px;
+            position: relative;
+        }
+
+        header h1 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+            letter-spacing: 2px;
+        }
+
+        header .sub-title {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            font-weight: normal;
+        }
+
+        .reward-tag {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: var(--primary-red);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.8rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* Profile Card */
+        .profile-card {
+            background: white;
+            margin: -20px 15px 15px;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 10;
+            text-align: center;
+        }
+
+        /* Photo Gallery Styles */
+        .photo-gallery-wrapper {
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .photo-gallery {
+            display: flex;
+            overflow-x: auto;
+            gap: 10px;
+            padding: 5px 5px 15px 5px;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+
+        .photo-gallery::-webkit-scrollbar {
+            display: none;
+        }
+
+        .gallery-item {
+            flex: 0 0 auto;
+            width: 100px;
+            height: 120px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid #eee;
+            scroll-snap-align: center;
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .gallery-item:active {
+            transform: scale(0.95);
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .gallery-item.main-photo {
+            border-color: var(--primary-red);
+            width: 110px;
+            height: 130px;
+        }
+
+        .photo-count {
+            position: absolute;
+            bottom: 20px;
+            right: 25px;
+            background: rgba(0,0,0,0.6);
+            color: white;
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            pointer-events: none;
+        }
+
+        .name-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--text-dark);
+            margin-bottom: 5px;
+        }
+
+        .id-card {
+            font-family: monospace;
+            background: #f5f5f5;
+            padding: 5px 10px;
+            border-radius: 4px;
+            display: inline-block;
+            font-size: 0.9rem;
+            color: #555;
+            margin-bottom: 15px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            text-align: left;
+            background: #fff5f5;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #ffebeb;
+        }
+
+        .info-item label {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--text-gray);
+            margin-bottom: 3px;
+        }
+
+        .info-item span {
+            font-weight: bold;
+            color: var(--primary-red);
+            font-size: 1.1rem;
+        }
+
+        /* Court Document Section */
+        .section-box {
+            background: white;
+            margin: 15px;
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-left: 4px solid var(--legal-blue);
+            padding-left: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .doc-preview {
+            width: 100%;
+            height: 200px;
+            background: #eee;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .doc-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .doc-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(0,0,0,0.6);
+            color: white;
+            text-align: center;
+            padding: 5px;
+            font-size: 0.8rem;
+        }
+
+        /* Timeline (Status) */
+        .timeline {
+            position: relative;
+            padding-left: 20px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 5px;
+            bottom: 0;
+            width: 2px;
+            background: #e0e0e0;
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 25px;
+        }
+
+        .timeline-dot {
+            position: absolute;
+            left: -25px;
+            top: 0;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: white;
+            border: 3px solid var(--legal-blue);
+            z-index: 1;
+        }
+
+        .timeline-item.active .timeline-dot {
+            background: var(--primary-red);
+            border-color: var(--primary-red);
+            box-shadow: 0 0 0 4px rgba(217, 48, 37, 0.2);
+        }
+
+        .timeline-date {
+            font-size: 0.8rem;
+            color: #999;
+            margin-bottom: 4px;
+        }
+
+        .timeline-content {
+            background: #f9f9f9;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .timeline-tag {
+            display: inline-block;
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 3px;
+            margin-right: 5px;
+            font-weight: bold;
+        }
+        .tag-trace { background: #e3f2fd; color: #1976d2; }
+        .tag-consume { background: #fff3e0; color: #f57c00; }
+        .tag-hide { background: #ffebee; color: #c62828; }
+
+        /* Clues List */
+        .clue-item {
+            border-bottom: 1px solid #eee;
+            padding: 10px 0;
+            font-size: 0.9rem;
+        }
+        .clue-item:last-child { border-bottom: none; }
+        .clue-location { font-weight: bold; color: var(--text-dark); }
+        .clue-time { float: right; font-size: 0.75rem; color: #999; }
+        .clue-desc { color: #666; margin-top: 4px; font-size: 0.85rem; }
+
+        /* Bottom Action Bar */
+        .bottom-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: white;
+            padding: 10px 20px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 15px;
+            z-index: 100;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 25px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1rem;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-outline {
+            background: white;
+            border: 2px solid var(--legal-blue);
+            color: var(--legal-blue);
+        }
+
+        .btn-primary {
+            background: var(--primary-red);
+            color: white;
+            flex: 2;
+            box-shadow: 0 4px 10px rgba(217, 48, 37, 0.4);
+        }
+
+        /* Modal for Image */
+        .image-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: black;
+            z-index: 2000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .image-modal img {
+            max-width: 100%;
+            max-height: 80vh;
+            object-fit: contain;
+        }
+        .modal-caption {
+            color: white;
+            margin-top: 15px;
+            font-size: 0.9rem;
+            background: rgba(0,0,0,0.5);
+            padding: 5px 15px;
+            border-radius: 20px;
+        }
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+            background: rgba(255,255,255,0.2);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 40px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="reward-tag">悬赏 ¥50,000</div>
+        <h1>悬赏通告</h1>
+        <div class="sub-title">案号：(2023) 浙 01 执 1024 号</div>
+    </header>
+
+    <!-- Profile -->
+    <div class="profile-card">
+        <!-- Photo Gallery -->
+        <div class="photo-gallery-wrapper">
+            <div class="photo-gallery" id="photoGallery">
+                <!-- Photos injected by JS -->
+            </div>
+            <div class="photo-count" id="photoCount">1/4</div>
+        </div>
+
+        <div class="name-title">张三</div>
+        <div class="id-card">33010619800101****</div>
+        
+        <div class="info-grid">
+            <div class="info-item">
+                <label>未履行金额</label>
+                <span>¥ 1,250,000</span>
+            </div>
+            <div class="info-item">
+                <label>执行法院</label>
+                <span style="color:#333; font-size:0.9rem;">杭州市中级人民法院</span>
+            </div>
+            <div class="info-item" style="grid-column: span 2;">
+                <label>最后已知住址</label>
+                <span style="color:#333; font-size:0.9rem;">杭州市西湖区某某路某某小区 3 幢</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Court Document -->
+    <div class="section-box">
+        <div class="section-title">
+            <span>法院执行文书</span>
+            <span style="font-size:0.8rem; color:#999; font-weight:normal;">点击放大</span>
+        </div>
+        <div class="doc-preview" id="docPreview">
+            <img src="https://bailian-bmp-pre.oss-cn-hangzhou.aliyuncs.com/public/system_agent/PlaceHolder.png" alt="执行裁定书">
+            <div class="doc-overlay">执行裁定书 (2023) 浙 01 执 1024 号</div>
+        </div>
+    </div>
+
+    <!-- Status Timeline -->
+    <div class="section-box">
+        <div class="section-title">老赖近况追踪</div>
+        <div class="timeline" id="timelineContainer">
+            <!-- JS Injected -->
+        </div>
+    </div>
+
+    <!-- Clues -->
+    <div class="section-box">
+        <div class="section-title">
+            <span>群众线索 (3)</span>
+        </div>
+        <div id="clueContainer">
+            <!-- JS Injected -->
+        </div>
+    </div>
+
+    <!-- Bottom Bar -->
+    <div class="bottom-bar">
+        <button class="btn btn-outline" id="shareBtn">分享扩散</button>
+        <button class="btn btn-primary" id="reportBtn">📞 一键举报线索</button>
+    </div>
+
+    <!-- Image Modal -->
+    <div class="image-modal" id="imageModal">
+        <div class="close-modal" id="closeModal">&times;</div>
+        <img src="" id="modalImg" alt="Full View">
+        <div class="modal-caption" id="modalCaption">照片说明</div>
+    </div>
+
+    <script>
+        // Mock Data - Multiple Photos
+        const photosData = [
+            {
+                src: "https://bailian-bmp-pre.oss-cn-hangzhou.aliyuncs.com/public/system_agent/PlaceHolder.png",
+                caption: "身份证证件照（主照片）",
+                isMain: true
+            },
+            {
+                src: "https://bailian-bmp-pre.oss-cn-hangzhou.aliyuncs.com/public/system_agent/PlaceHolder.png",
+                caption: "2023 年 5 月 监控截图",
+                isMain: false
+            },
+            {
+                src: "https://bailian-bmp-pre.oss-cn-hangzhou.aliyuncs.com/public/system_agent/PlaceHolder.png",
+                caption: "2022 年 生活照",
+                isMain: false
+            },
+            {
+                src: "https://bailian-bmp-pre.oss-cn-hangzhou.aliyuncs.com/public/system_agent/PlaceHolder.png",
+                caption: "车辆登记照片",
+                isMain: false
+            }
+        ];
+
+        const statusData = [
+            {
+                date: "2023-10-24 14:30",
+                type: "trace",
+                typeName: "行踪发现",
+                content: "系统监测到被执行人张三的手机号曾在杭州市滨江区某网吧附近基站登录。"
+            },
+            {
+                date: "2023-10-20 09:15",
+                type: "consume",
+                typeName: "高消费预警",
+                content: "疑似使用关联人身份证在某某高尔夫球场进行消费活动。"
+            },
+            {
+                date: "2023-10-15 18:00",
+                type: "hide",
+                typeName: "躲避执行",
+                content: "法院干警上门查找时，发现其住所灯亮但无人应答，疑似故意躲避。"
+            }
+        ];
+
+        const cluesData = [
+            {
+                location: "杭州市西湖区文三路",
+                time: "2 小时前",
+                desc: "看到他在一家面馆吃饭，穿着黑色夹克。"
+            },
+            {
+                location: "某某小区地下车库",
+                time: "1 天前",
+                desc: "看到一辆浙 A 开头的黑色奥迪，可能是他的车。"
+            },
+            {
+                location: "未知",
+                time: "3 天前",
+                desc: "听说他最近经常晚上去某棋牌室。"
+            }
+        ];
+
+        // DOM Elements
+        const photoGallery = document.getElementById('photoGallery');
+        const photoCount = document.getElementById('photoCount');
+        const timelineContainer = document.getElementById('timelineContainer');
+        const clueContainer = document.getElementById('clueContainer');
+        const imageModal = document.getElementById('imageModal');
+        const modalImg = document.getElementById('modalImg');
+        const modalCaption = document.getElementById('modalCaption');
+        const docPreview = document.getElementById('docPreview');
+        const closeModal = document.getElementById('closeModal');
+        const reportBtn = document.getElementById('reportBtn');
+        const shareBtn = document.getElementById('shareBtn');
+
+        // Render Functions
+        function renderPhotos() {
+            photoGallery.innerHTML = '';
+            photosData.forEach((photo, index) => {
+                const item = document.createElement('div');
+                item.className = `gallery-item ${photo.isMain ? 'main-photo' : ''}`;
+                item.innerHTML = `<img src="${photo.src}" alt="Photo ${index + 1}">`;
+                
+                item.addEventListener('click', () => {
+                    openImage(photo.src, photo.caption);
+                });
+                
+                photoGallery.appendChild(item);
+            });
+            updatePhotoCount();
+        }
+
+        function updatePhotoCount() {
+            photoCount.textContent = `共 ${photosData.length} 张`;
+        }
+
+        photoGallery.addEventListener('scroll', () => {
+            const scrollLeft = photoGallery.scrollLeft;
+            const itemWidth = 110;
+            const currentIndex = Math.round(scrollLeft / itemWidth) + 1;
+            photoCount.textContent = `${currentIndex}/${photosData.length}`;
+        });
+
+        function renderTimeline() {
+            timelineContainer.innerHTML = '';
+            statusData.forEach((item, index) => {
+                const isActive = index === 0 ? 'active' : '';
+                let tagClass = '';
+                if(item.type === 'trace') tagClass = 'tag-trace';
+                else if(item.type === 'consume') tagClass = 'tag-consume';
+                else tagClass = 'tag-hide';
+
+                const html = `
+                    <div class="timeline-item ${isActive}">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-date">${item.date}</div>
+                        <div class="timeline-content">
+                            <span class="timeline-tag ${tagClass}">${item.typeName}</span>
+                            ${item.content}
+                        </div>
+                    </div>
+                `;
+                timelineContainer.innerHTML += html;
+            });
+        }
+
+        function renderClues() {
+            clueContainer.innerHTML = '';
+            cluesData.forEach(item => {
+                const html = `
+                    <div class="clue-item">
+                        <div>
+                            <span class="clue-location">📍 ${item.location}</span>
+                            <span class="clue-time">${item.time}</span>
+                        </div>
+                        <div class="clue-desc">${item.desc}</div>
+                    </div>
+                `;
+                clueContainer.innerHTML += html;
+            });
+        }
+
+        // Event Listeners
+        function openImage(src, caption) {
+            modalImg.src = src;
+            modalCaption.textContent = caption;
+            imageModal.style.display = 'flex';
+        }
+
+        docPreview.addEventListener('click', () => {
+            openImage('https://bailian-bmp-pre.oss-cn-hangzhou.aliyuncs.com/public/system_agent/PlaceHolder.png', '法院执行裁定书原件');
+        });
+
+        closeModal.addEventListener('click', () => {
+            imageModal.style.display = 'none';
+        });
+
+        imageModal.addEventListener('click', (e) => {
+            if (e.target === imageModal || e.target === modalImg) {
+                imageModal.style.display = 'none';
+            }
+        });
+
+        reportBtn.addEventListener('click', () => {
+            const phone = prompt("请输入您的联系电话（我们将严格保密）：", "");
+            if (phone) {
+                const clue = prompt("请描述您看到的线索（时间、地点、人物特征）：", "");
+                if (clue) {
+                    alert("举报提交成功！\n感谢您的正义之举，线索核实后将立即发放奖金。");
+                    const newClue = document.createElement('div');
+                    newClue.className = 'clue-item';
+                    newClue.style.background = '#e8f5e9';
+                    newClue.innerHTML = `
+                        <div>
+                            <span class="clue-location">📍 刚刚提交</span>
+                            <span class="clue-time">审核中</span>
+                        </div>
+                        <div class="clue-desc">${clue}</div>
+                    `;
+                    clueContainer.insertBefore(newClue, clueContainer.firstChild);
+                }
+            }
+        });
+
+        shareBtn.addEventListener('click', () => {
+            if (navigator.share) {
+                navigator.share({
+                    title: '法院悬赏通告',
+                    text: '发现老赖张三，悬赏 5 万元！请帮忙扩散！',
+                    url: window.location.href,
+                });
+            } else {
+                alert("链接已复制到剪贴板，请发送给好友！");
+            }
+        });
+
+        // Init
+        document.addEventListener('DOMContentLoaded', () => {
+            renderPhotos();
+            renderTimeline();
+            renderClues();
+        });
+
+    </script>
+</body>
+</html>
